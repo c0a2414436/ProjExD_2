@@ -1,6 +1,7 @@
 import os
 import random
 import sys
+import time 
 import pygame as pg
 
 
@@ -28,6 +29,59 @@ def check_bound(rct):
     return yoko, tate
 
 
+import time  # ← ファイル冒頭に追加すること
+
+def gameover(screen: pg.Surface) -> None:
+    """
+    ゲームオーバー時に,半透明の黒い画面上に「Game Over」と表示し,泣いているこうかとん画像を貼り付ける関数
+    """
+
+    blackout = pg.Surface((WIDTH, HEIGHT))
+    blackout.set_alpha(180)  # 半透明
+    blackout.fill((0, 0, 0))
+    screen.blit(blackout, (0, 0))  # screen に貼り付け
+
+    sad_kk_img = pg.transform.rotozoom(pg.image.load("fig/8.png"), 0, 0.9)
+    sad_kk_rect_left = sad_kk_img.get_rect(center=(WIDTH // 2 - 200, HEIGHT // 2))
+    sad_kk_rect_right = sad_kk_img.get_rect(center=(WIDTH // 2 + 200, HEIGHT // 2))
+    screen.blit(sad_kk_img, sad_kk_rect_left)   # 左側
+    screen.blit(sad_kk_img, sad_kk_rect_right)  # 右側
+
+    # Game Over
+    font = pg.font.SysFont(None, 80)
+    text = font.render("Game Over", True, (255, 0, 0))
+    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+    screen.blit(text, text_rect)
+    pg.display.update()
+    time.sleep(5)
+
+import time  # ← 忘れずに追加
+
+def gameover(screen: pg.Surface) -> None:
+    """
+    ゲームオーバー時に,半透明の黒い画面上に「Game Over」と表示し,泣いているこうかとん画像を貼り付ける関数
+    """
+
+    blackout = pg.Surface((WIDTH, HEIGHT))
+    blackout.set_alpha(180)
+    blackout.fill((0, 0, 0))
+    screen.blit(blackout, (0, 0))  # Surfaceを貼り付ける
+
+    # 泣いているこうかとん画像
+    sad_img = pg.transform.rotozoom(pg.image.load("fig/8.png"), 0, 0.9)
+    sad_left = sad_img.get_rect(center=(WIDTH // 2 - 200, HEIGHT // 2))
+    sad_right = sad_img.get_rect(center=(WIDTH // 2 + 200, HEIGHT // 2))
+    screen.blit(sad_img, sad_left)
+    screen.blit(sad_img, sad_right)
+
+    # Game Over
+    font = pg.font.SysFont(None, 80)
+    text = font.render("Game Over", True, (255, 0, 0))
+    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+    screen.blit(text, text_rect)
+    pg.display.update()
+    time.sleep(5)
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -49,7 +103,7 @@ def main():
             if event.type == pg.QUIT: 
                 return
         if kk_rct.colliderect(bb_rct): #衝突判定
-            print("ゲームオーバー")
+            gameover(screen)
             return
         screen.blit(bg_img, [0, 0]) 
 
