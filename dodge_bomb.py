@@ -79,14 +79,11 @@ def main():
     kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
-
     bb_imgs, bb_accs = init_bb_imgs()
-
     bb_img = bb_imgs[0]
     bb_rct = bb_img.get_rect()
     bb_rct.centerx = random.randint(0, WIDTH)  
     bb_rct.centery = random.randint(0, HEIGHT) 
-
     vx, vy = +5, +5  
     clock = pg.time.Clock()
     tmr = 0
@@ -98,9 +95,8 @@ def main():
         if kk_rct.colliderect(bb_rct):  # 衝突判定
             gameover(screen)
             return
-
+        
         screen.blit(bg_img, [0, 0]) 
-
         key_lst = pg.key.get_pressed()
         sum_mv = [0, 0]
         for key, mv in DELTA.items():
@@ -117,11 +113,9 @@ def main():
         bb_img = bb_imgs[level]
         avx = vx * bb_accs[level]
         avy = vy * bb_accs[level]
-
         center = bb_rct.center
         bb_rct = bb_img.get_rect()
         bb_rct.center = center
-
         bb_rct.move_ip(avx, avy)  # 爆弾の移動
         yoko, tate = check_bound(bb_rct)
         if not yoko:
