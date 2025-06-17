@@ -14,6 +14,20 @@ DELTA = {  # 移動量辞書
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
+def check_bound(rct):
+    """
+    引数：こうかとんRectまたは爆弾Rect
+    戻り値：横方向，縦方向の画面内外判定結果
+    画面内ならTrue,画面外ならFalse
+    """
+    yoko,tate = True, True
+    if rct.left < 0 or WIDTH < rct.right:
+        yoko = False
+    if rct.top < 0 or HEIGHT < rct.bottom:
+        tate = False
+    return yoko, tate
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -21,13 +35,13 @@ def main():
     kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
-    bb_img = pg.Surface((20, 20))  # 空のSurfaceを作る（爆弾用）
+    bb_img = pg.Surface((20, 20))  # 空のSurfaceを作る
     pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)  # 赤い円を描く
     bb_img.set_colorkey((0, 0, 0))  # 黒を透明色に設定
     bb_rct = bb_img.get_rect()  # 爆弾Rectを取得
-    bb_rct.centerx = random.randint(0, WIDTH)  # 横座標用の乱数
-    bb_rct.centery = random.randint(0, HEIGHT)  # 縦座標用の乱数
-    vx, vy = +5, +5  # 爆弾の移動速度
+    bb_rct.centerx = random.randint(0, WIDTH)  
+    bb_rct.centery = random.randint(0, HEIGHT) 
+    vx, vy = +5, +5  
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -51,8 +65,15 @@ def main():
         # if key_lst[pg.K_RIGHT]:
         #     sum_mv[0] += 5
         kk_rct.move_ip(sum_mv)
+        if check_bound(kk_rct) != (True, True):
+            kk_rct.move_ip(-sum_mv[0], -sum_mv[1]) 
         screen.blit(kk_img, kk_rct)
         bb_rct.move_ip(vx, vy)  # 爆弾の移動
+        yoko, tate = check_bound(bb_rct)
+        if not yoko:
+            vx *= -1
+        if not tate:
+            vy *= -1
         screen.blit(bb_img, bb_rct)  # 爆弾の描画
         pg.display.update()
         tmr += 1
