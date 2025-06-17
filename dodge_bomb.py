@@ -35,7 +35,6 @@ def gameover(screen: pg.Surface) -> None:
     """
     ゲームオーバー時に,半透明の黒い画面上に「Game Over」と表示し,泣いているこうかとん画像を貼り付ける関数
     """
-
     blackout = pg.Surface((WIDTH, HEIGHT))
     blackout.set_alpha(180)  # 半透明
     blackout.fill((0, 0, 0))
@@ -55,32 +54,23 @@ def gameover(screen: pg.Surface) -> None:
     pg.display.update()
     time.sleep(5)
 
-import time  # ← 忘れずに追加
 
-def gameover(screen: pg.Surface) -> None:
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     """
-    ゲームオーバー時に,半透明の黒い画面上に「Game Over」と表示し,泣いているこうかとん画像を貼り付ける関数
+    サイズの異なる爆弾Surfaceを要素としたリストと加速度リストを返す
     """
+    bb_imgs = []
+    bb_accs = [a for a in range(1, 11)]  # 加速度リスト
 
-    blackout = pg.Surface((WIDTH, HEIGHT))
-    blackout.set_alpha(180)
-    blackout.fill((0, 0, 0))
-    screen.blit(blackout, (0, 0))  # Surfaceを貼り付ける
+    for r in range(1, 11):  # r=1〜10
+        size = 20 * r
+        img = pg.Surface((size, size))
+        pg.draw.circle(img, (255, 0, 0), (size // 2, size // 2), size // 2)
+        img.set_colorkey((0, 0, 0))  # 透明に
+        bb_imgs.append(img)
 
-    # 泣いているこうかとん画像
-    sad_img = pg.transform.rotozoom(pg.image.load("fig/8.png"), 0, 0.9)
-    sad_left = sad_img.get_rect(center=(WIDTH // 2 - 200, HEIGHT // 2))
-    sad_right = sad_img.get_rect(center=(WIDTH // 2 + 200, HEIGHT // 2))
-    screen.blit(sad_img, sad_left)
-    screen.blit(sad_img, sad_right)
+    return bb_imgs, bb_accs
 
-    # Game Over
-    font = pg.font.SysFont(None, 80)
-    text = font.render("Game Over", True, (255, 0, 0))
-    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-    screen.blit(text, text_rect)
-    pg.display.update()
-    time.sleep(5)
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -89,22 +79,26 @@ def main():
     kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
-    bb_img = pg.Surface((20, 20))  # 空のSurfaceを作る
-    pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)  # 赤い円を描く
-    bb_img.set_colorkey((0, 0, 0))  # 黒を透明色に設定
-    bb_rct = bb_img.get_rect()  # 爆弾Rectを取得
+
+    bb_imgs, bb_accs = init_bb_imgs()
+
+    bb_img = bb_imgs[0]
+    bb_rct = bb_img.get_rect()
     bb_rct.centerx = random.randint(0, WIDTH)  
     bb_rct.centery = random.randint(0, HEIGHT) 
+
     vx, vy = +5, +5  
     clock = pg.time.Clock()
     tmr = 0
+
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: 
                 return
-        if kk_rct.colliderect(bb_rct): #衝突判定
+        if kk_rct.colliderect(bb_rct):  # 衝突判定
             gameover(screen)
             return
+
         screen.blit(bg_img, [0, 0]) 
 
         key_lst = pg.key.get_pressed()
@@ -113,25 +107,29 @@ def main():
             if key_lst[key]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
-        # if key_lst[pg.K_UP]:
-        #     sum_mv[1] -= 5
-        # if key_lst[pg.K_DOWN]:
-        #     sum_mv[1] += 5
-        # if key_lst[pg.K_LEFT]:
-        #     sum_mv[0] -= 5
-        # if key_lst[pg.K_RIGHT]:
-        #     sum_mv[0] += 5
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True, True):
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1]) 
         screen.blit(kk_img, kk_rct)
-        bb_rct.move_ip(vx, vy)  # 爆弾の移動
+
+        # tmrに応じて爆弾のサイズ・加速度を変更
+        level = (min(tmr // 500, 9))  
+        bb_img = bb_imgs[level]
+        avx = vx * bb_accs[level]
+        avy = vy * bb_accs[level]
+
+        center = bb_rct.center
+        bb_rct = bb_img.get_rect()
+        bb_rct.center = center
+
+        bb_rct.move_ip(avx, avy)  # 爆弾の移動
         yoko, tate = check_bound(bb_rct)
         if not yoko:
             vx *= -1
         if not tate:
             vy *= -1
-        screen.blit(bb_img, bb_rct)  # 爆弾の描画
+        screen.blit(bb_img, bb_rct)  
+
         pg.display.update()
         tmr += 1
         clock.tick(50)
